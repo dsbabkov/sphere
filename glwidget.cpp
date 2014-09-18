@@ -37,7 +37,7 @@ void GLWidget::initializeGL()
     program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/sphere.fsh");
     program->bind();
 
-    createAxis3D();
+    createAxis3D(25);
 
     buffer.create();
     buffer.bind();
@@ -65,7 +65,7 @@ void GLWidget::initializeGL()
 
     program->setAttributeArray("vertexis", GL_FLOAT, NULL, 3);
     program->enableAttributeArray("vertexis");
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+//    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
 }
@@ -293,10 +293,10 @@ void GLWidget::freeSphere()
     upSphereCone = sphereVertices = downSphereCone = 0;
 }
 
-void GLWidget::createAxis3D()
+void GLWidget::createAxis3D(int quality)
 {
     // middle point (sphere)
-    createSphere(0.1f, 15, 15);
+    createSphere(0.1f, quality, quality);
     axisSphereSize = sphereVerticesSize;
     axisSphereBuffer.create();
     axisSphereBuffer.bind();
@@ -304,21 +304,21 @@ void GLWidget::createAxis3D()
     freeSphere();
 
     //axis
-    createCylinder(0.05f, 0.05f, 0.5f, 15);
+    createCylinder(0.05f, 0.05f, 0.5f, quality);
     axisCylynderSize = cylinderSize;
     axisCylynderBuffer.create();
     axisCylynderBuffer.bind();
     axisCylynderBuffer.allocate(cylinderVertices, axisCylynderSize * sizeof(float));
     freeCylinder();
 
-    createDisk(0.1f, 15);
+    createDisk(0.1f, quality);
     axisDiskSize = diskSize;
     axisDiskBuffer.create();
     axisDiskBuffer.bind();
     axisDiskBuffer.allocate(diskVertices, axisDiskSize * sizeof(float));
     freeDisk();
 
-    createCone(0.1, 0.1, 15);
+    createCone(0.1, 0.1, quality);
     axisConeSize = coneSize;
     axisConeBuffer.create();
     axisConeBuffer.bind();
@@ -333,8 +333,17 @@ void GLWidget::renderAxis3D()
     axisPos[0].rotate(-90.0f, 0.0f, 0.0f, 1.0f);
     axisPos[2].rotate(90.0f, 1.0f, 0.0f);
 
+    float color[] =
+    {
+        1.0f, 0.0f, 0.0f, 1.0f,
+        0.0f, 1.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f, 1.0f
+    };
+
     for (int i = 0; i < 3; i++)
     {
+        program->setUniformValue("color", color[i * 4], color[i * 4 + 1], color[i * 4 + 2], color[i * 4 + 3]);
+
         program->setUniformValue("modelViewProj", proj * axisPos[i]);
         axisCylynderBuffer.bind();
         program->setAttributeArray("vertexis", GL_FLOAT, NULL, 3);
@@ -358,11 +367,9 @@ void GLWidget::renderAxis3D()
 
     }
 
-
+    program->setUniformValue("color", 1.0f, 1.0f, 1.0f, 1.0f);
     program->setUniformValue("modelViewProj", proj * modelView);
     axisSphereBuffer.bind();
     program->setAttributeArray("vertexis", GL_FLOAT, NULL, 3);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, axisSphereSize / 3);
-
-
 }

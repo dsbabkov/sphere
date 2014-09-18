@@ -30,7 +30,7 @@ private:
     void freeCylinder();
 
     void renderAxis3D();
-    void createAxis3D();
+    void createAxis3D(int quality);
 
     QMatrix4x4 proj,
                modelView;
