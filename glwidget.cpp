@@ -32,7 +32,8 @@ GLWidget::~GLWidget()
 
 void GLWidget::initializeGL()
 {
-    glClearColor(0.0f, 0.0f, 0.1f, 1.0f);
+//    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/sphere.vsh");
     program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/sphere.fsh");
     program->bind();
@@ -126,7 +127,7 @@ void GLWidget::paintGL()
 void GLWidget::createSphere(float radius, int slices, int stacks)
 {
     freeSphere();
-    float stackFract = 2.0f / (stacks-2);
+    float stackFract = 2.0f / (stacks);
     float centerStack = (stacks - 1) / 2.0f;
 
     float* stackR = new float[stacks];
@@ -138,6 +139,13 @@ void GLWidget::createSphere(float radius, int slices, int stacks)
         if (i > centerStack)
                 stackH[i] *= -1.0f;    //поправка на верх-низ
         stackR[i] = sqrtf(1.0f - powf(stackR[i], 2.0f)) * radius;      // радиус в сечении слоя
+    }
+
+    float tmp3[30], tmp4[30];
+    for (int i = 0; i < stacks; i++)
+    {
+        tmp3[i] = stackR[i];
+        tmp4[i] = stackH[i];
     }
 
 
@@ -191,6 +199,25 @@ void GLWidget::createSphere(float radius, int slices, int stacks)
         tmp[j * 3 + 1] = sphereVertices[sphereVerticesSize - 2 - j * 6];
         tmp[j * 3 + 2] = sphereVertices[sphereVerticesSize - 1 - j * 6];
     }
+
+    float tmp2[500][3];
+    for (int i = 0; i < slices + 2; i++)
+        for (int j = 0; j < 3; j++)
+        {
+            tmp2[i][j] = tmp[i * 3 + j];
+        }
+
+    for (int j = 0; j < slices + 1; j++)
+    {
+        tmp2[j][0] = sphereVertices[j * 6];
+        tmp2[j][1] = sphereVertices[j * 6 + 1];
+        tmp2[j][2] = sphereVertices[j * 6 + 2];
+    }
+
+    tmp = 0;
+
+
+
 }
 
 void GLWidget::keyPressEvent(QKeyEvent *event)
@@ -304,6 +331,12 @@ void GLWidget::createAxis3D(int quality)
     axisSphereBuffer.create();
     axisSphereBuffer.bind();
     axisSphereBuffer.allocate(sphereVertices, axisSphereSize * sizeof(float));
+
+    axisBottomSphereSize = sphereConeSize;
+    axisBottomSphereBuffer.create();
+    axisBottomSphereBuffer.bind();
+    axisBottomSphereBuffer.allocate(downSphereCone, axisBottomSphereSize * sizeof(float));
+
     freeSphere();
 
     //axis
@@ -387,4 +420,7 @@ void GLWidget::renderAxis3D()
     axisSphereBuffer.bind();
     program->setAttributeArray("vertexis", GL_FLOAT, NULL, 3);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, axisSphereSize / 3);
+    axisBottomSphereBuffer.bind();
+    program->setAttributeArray("vertexis", GL_FLOAT, NULL, 3);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, axisBottomSphereSize / 3);
 }

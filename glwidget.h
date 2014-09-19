@@ -36,9 +36,9 @@ private:
                modelView;
     QOpenGLShaderProgram* program;
     QOpenGLBuffer buffer, buffer2, buffer3, buffer4, buffer5, buffer6,
-                  axisSphereBuffer, axisCylynderBuffer, axisDiskBuffer, axisConeBuffer;
+                  axisSphereBuffer, axisBottomSphereBuffer, axisCylynderBuffer, axisDiskBuffer, axisConeBuffer;
 
-    int axisSphereSize, axisCylynderSize, axisDiskSize, axisConeSize;
+    int axisSphereSize, axisBottomSphereSize, axisCylynderSize, axisDiskSize, axisConeSize;
 
     float* sphereVertices,
          * upSphereCone,

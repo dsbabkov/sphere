@@ -20,17 +20,15 @@ vec3 normSphere(vec3 vertex)
 
 vec3 normCylinder(vec3 vertex)
 {
-    return normalize(vec3(vertex.x, 0.0f, vertex.z));
+    return normalize(vec3(vertex.x, 0.0, vertex.z));
 }
 
 vec3 normCone(vec3 vertex)
 {
-//    float radius = length(vertex.xz);
-//    float y = radius * 3.0f;
-//    return normalize(vec3(vertex.x, y, vertex.z));
-//    return vec3(-1.0f, 0.0f, 0.0f);
-    return -normCylinder(vertex);
-
+    if (vertex.xz == vec2(0, 0))
+        return vec3(0, 1, 0);
+    else
+        return normalize(vec3(vertex.x, 0.5270462766947299, vertex.z));
 }
 
 vec3 normDisk()
