@@ -68,6 +68,9 @@ void GLWidget::initializeGL()
 //    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
+    glEnable(GL_DEPTH_TEST);
+    glClearDepth(-1.0f);
+    glDepthFunc(GL_GREATER);
 }
 
 void GLWidget::resizeGL(int w, int h)
@@ -318,7 +321,7 @@ void GLWidget::createAxis3D(int quality)
     axisDiskBuffer.allocate(diskVertices, axisDiskSize * sizeof(float));
     freeDisk();
 
-    createCone(0.1, 0.1, quality);
+    createCone(0.1, 0.3, quality);
     axisConeSize = coneSize;
     axisConeBuffer.create();
     axisConeBuffer.bind();
@@ -331,7 +334,7 @@ void GLWidget::renderAxis3D()
     QMatrix4x4 axisPos[] = {modelView, modelView, modelView};
 
     axisPos[0].rotate(-90.0f, 0.0f, 0.0f, 1.0f);
-    axisPos[2].rotate(90.0f, 1.0f, 0.0f);
+    axisPos[2].rotate(-90.0f, 1.0f, 0.0f);
 
     float color[] =
     {
@@ -345,6 +348,9 @@ void GLWidget::renderAxis3D()
         program->setUniformValue("color", color[i * 4], color[i * 4 + 1], color[i * 4 + 2], color[i * 4 + 3]);
 
         program->setUniformValue("modelViewProj", proj * axisPos[i]);
+        program->setUniformValue("modelView", axisPos[i]);
+        program->setUniformValue("normalMatr", axisPos[i].normalMatrix());
+        program->setUniformValue("normMethod", 2);
         axisCylynderBuffer.bind();
         program->setAttributeArray("vertexis", GL_FLOAT, NULL, 3);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, axisCylynderSize / 3);
@@ -353,6 +359,9 @@ void GLWidget::renderAxis3D()
         tmp.translate(0.0f, 0.5f, 0.0f);
         tmp.rotate(180.0f, 1.0f, 0.0f);
         program->setUniformValue("modelViewProj", proj * tmp);
+        program->setUniformValue("modelView", tmp);
+        program->setUniformValue("normalMatr", tmp.normalMatrix());
+        program->setUniformValue("normMethod", 1);
 
         axisDiskBuffer.bind();
         program->setAttributeArray("vertexis", GL_FLOAT, NULL, 3);
@@ -360,6 +369,9 @@ void GLWidget::renderAxis3D()
 
         tmp.rotate(180.0f, 1.0f, 0.0f);
         program->setUniformValue("modelViewProj", proj * tmp);
+        program->setUniformValue("modelView", tmp);
+        program->setUniformValue("normalMatr", tmp.normalMatrix());
+        program->setUniformValue("normMethod", 1);
 
         axisConeBuffer.bind();
         program->setAttributeArray("vertexis", GL_FLOAT, NULL, 3);
@@ -369,6 +381,9 @@ void GLWidget::renderAxis3D()
 
     program->setUniformValue("color", 1.0f, 1.0f, 1.0f, 1.0f);
     program->setUniformValue("modelViewProj", proj * modelView);
+    program->setUniformValue("modelView", modelView);
+    program->setUniformValue("normalMatr", modelView.normalMatrix());
+    program->setUniformValue("normMethod", 0);
     axisSphereBuffer.bind();
     program->setAttributeArray("vertexis", GL_FLOAT, NULL, 3);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, axisSphereSize / 3);
