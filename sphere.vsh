@@ -28,7 +28,8 @@ vec3 normCone(vec3 vertex)
     if (vertex.xz == vec2(0, 0))
         return vec3(0, 1, 0);
     else
-        return normalize(vec3(vertex.x, 0.5270462766947299, vertex.z));
+        return normalize(vec3(vertex.x, 0, vertex.z));
+//        return normCylinder(vertex);
 }
 
 vec3 normDisk()

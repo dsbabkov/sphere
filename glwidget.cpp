@@ -17,6 +17,9 @@ GLWidget::GLWidget(QWidget *parent) :
     createDisk(0.5f, 6);
     createCylinder(0.9f, 0.1f, 0.0f, 50);
     program = new QOpenGLShaderProgram(this);
+
+    setFormat(QGLFormat(QGL::DoubleBuffer | QGL::DepthBuffer | QGL::SampleBuffers | QGL::NoDeprecatedFunctions));
+    modelView.setColumn(3, QVector4D(-0.5, -0.5, 0, 1));
 }
 
 GLWidget::~GLWidget()
@@ -32,7 +35,7 @@ GLWidget::~GLWidget()
 
 void GLWidget::initializeGL()
 {
-//    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+//    glClearColor(1.0f, 1.0f, 0.0f, 1.0f);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/sphere.vsh");
     program->addShaderFromSourceFile(QOpenGLShader::Fragment, ":/sphere.fsh");
@@ -70,24 +73,26 @@ void GLWidget::initializeGL()
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glEnable(GL_DEPTH_TEST);
-    glClearDepth(-1.0f);
-    glDepthFunc(GL_GREATER);
+//    glClearDepth(-1.0f);
+//    glDepthFunc(GL_GREATER);
+
+    glViewport(0, 0, 100, 100);
 }
 
 void GLWidget::resizeGL(int w, int h)
 {
-    if (h == 0)
-        h = 1;
-    glViewport(0, 0, w, h);
+//    if (h == 0)
+//        h = 1;
+//    glViewport(0, 0, w, h);
 
-    proj.setToIdentity();
+//    proj.setToIdentity();
 
-    float aspectRatio = static_cast<float>(h) / static_cast<float>(w);
+//    float aspectRatio = static_cast<float>(h) / static_cast<float>(w);
 
-    if (w <= h)
-        proj.ortho(-1.0, 1.0, -1.0 * aspectRatio, 1.0 * aspectRatio, -1.0, 1.0);
-    else
-        proj.ortho(-1.0 / aspectRatio, 1.0 / aspectRatio, -1.0, 1.0, -1.0, 1.0);
+//    if (w <= h)
+//        proj.ortho(-1.0, 1.0, -1.0 * aspectRatio, 1.0 * aspectRatio, -1.0, 1.0);
+//    else
+//        proj.ortho(-1.0 / aspectRatio, 1.0 / aspectRatio, -1.0, 1.0, -1.0, 1.0);
 
 }
 
@@ -141,14 +146,6 @@ void GLWidget::createSphere(float radius, int slices, int stacks)
         stackR[i] = sqrtf(1.0f - powf(stackR[i], 2.0f)) * radius;      // радиус в сечении слоя
     }
 
-    float tmp3[30], tmp4[30];
-    for (int i = 0; i < stacks; i++)
-    {
-        tmp3[i] = stackR[i];
-        tmp4[i] = stackH[i];
-    }
-
-
 
     sphereVerticesSize = (stacks * 2 - 2) * (slices + 1) * 3;
     sphereVertices = new float[sphereVerticesSize];
@@ -200,37 +197,45 @@ void GLWidget::createSphere(float radius, int slices, int stacks)
         tmp[j * 3 + 2] = sphereVertices[sphereVerticesSize - 1 - j * 6];
     }
 
-    float tmp2[500][3];
-    for (int i = 0; i < slices + 2; i++)
-        for (int j = 0; j < 3; j++)
-        {
-            tmp2[i][j] = tmp[i * 3 + j];
-        }
-
-    for (int j = 0; j < slices + 1; j++)
-    {
-        tmp2[j][0] = sphereVertices[j * 6];
-        tmp2[j][1] = sphereVertices[j * 6 + 1];
-        tmp2[j][2] = sphereVertices[j * 6 + 2];
-    }
-
-    tmp = 0;
-
-
-
 }
 
 void GLWidget::keyPressEvent(QKeyEvent *event)
 {
     if (event->key() == Qt::Key_Left)
-        modelView.rotate(10.0f, 0.0f, 1.0f, 0.0f);
-    if (event->key() == Qt::Key_Up)
-        modelView.rotate(10.0f, 1.0f, 0.0f, 0.0f);
-    if (event->key() == Qt::Key_Right)
-        modelView.rotate(-10.0f, 0.0f, 1.0f, 0.0f);
-    if (event->key() == Qt::Key_Down)
-        modelView.rotate(-10.0f, 1.0f, 0.0f, 0.0f);
+        modelView.rotate(5.0f, 0.0f, 1.0f, 0.0f);
+    else if (event->key() == Qt::Key_Up)
+        modelView.rotate(5.0f, 1.0f, 0.0f, 0.0f);
+    else if (event->key() == Qt::Key_Right)
+        modelView.rotate(-5.0f, 0.0f, 1.0f, 0.0f);
+    else if (event->key() == Qt::Key_Down)
+        modelView.rotate(-5.0f, 1.0f, 0.0f, 0.0f);
+    else if (event->key() == Qt::Key_Z)
+        modelView.rotate(-5.0f, 0.0f, 0.0f, 1.0f);
+    else if (event->key() == Qt::Key_X)
+        modelView.rotate(5.0f, 0.0f, 0.0f, 1.0f);
+    else return;
 
+    modelView.setColumn(3, QVector4D(-0.5f, -0.5f, 0.0f, 1.0f));
+
+    QVector4D xDir = modelView.column(0),
+              yDir = modelView.column(1),
+              zDir = modelView.column(2);
+    float minX = xDir.x() < yDir.x() ? xDir.x() : yDir.x();
+    float minY = xDir.y() < yDir.y() ? xDir.y() : yDir.y();
+
+    minX = minX < -zDir.x() ? minX : -zDir.x();
+    minY = minY < -zDir.y() ? minY : -zDir.y();
+
+    float xOffset, yOffset;
+    xOffset = yOffset = -0.5f;
+
+    if (minX < 0.0f)
+        xOffset -= minX / 2.0f;
+    if (minY < 0.0f)
+        yOffset -= minY / 2.0f;
+
+
+    modelView.setColumn(3, QVector4D(xOffset, yOffset, 0.0f, 1.0f));
     updateGL();
 }
 
@@ -376,6 +381,18 @@ void GLWidget::renderAxis3D()
         0.0f, 0.0f, 1.0f, 1.0f
     };
 
+    program->setUniformValue("color", 1.0f, 1.0f, 1.0f, 1.0f);
+    program->setUniformValue("modelViewProj", proj * modelView);
+    program->setUniformValue("modelView", modelView);
+    program->setUniformValue("normalMatr", modelView.normalMatrix());
+    program->setUniformValue("normMethod", 0);
+    axisSphereBuffer.bind();
+    program->setAttributeArray("vertexis", GL_FLOAT, NULL, 3);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, axisSphereSize / 3);
+    axisBottomSphereBuffer.bind();
+    program->setAttributeArray("vertexis", GL_FLOAT, NULL, 3);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, axisBottomSphereSize / 3);
+
     for (int i = 0; i < 3; i++)
     {
         program->setUniformValue("color", color[i * 4], color[i * 4 + 1], color[i * 4 + 2], color[i * 4 + 3]);
@@ -412,15 +429,4 @@ void GLWidget::renderAxis3D()
 
     }
 
-    program->setUniformValue("color", 1.0f, 1.0f, 1.0f, 1.0f);
-    program->setUniformValue("modelViewProj", proj * modelView);
-    program->setUniformValue("modelView", modelView);
-    program->setUniformValue("normalMatr", modelView.normalMatrix());
-    program->setUniformValue("normMethod", 0);
-    axisSphereBuffer.bind();
-    program->setAttributeArray("vertexis", GL_FLOAT, NULL, 3);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, axisSphereSize / 3);
-    axisBottomSphereBuffer.bind();
-    program->setAttributeArray("vertexis", GL_FLOAT, NULL, 3);
-    glDrawArrays(GL_TRIANGLE_FAN, 0, axisBottomSphereSize / 3);
 }
